@@ -9,7 +9,7 @@ const SDL_Point screen = { .x = 1280, .y = 720 };
 FC_Font *font = NULL;
 int32_t spaceWidth;
 SDL_Renderer *renderer;
-SDL_Texture *frameBuffer;
+SDL_Texture *display;
 
 void draw_screen(SDL_Renderer *renderer)
 {
@@ -34,6 +34,8 @@ int main()
         );
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1,
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    display = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SDL_SetRenderTarget(renderer, display);
 
     // make the scaled rendering look smoother.
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
@@ -56,8 +58,10 @@ int main()
 
         textToFrameCut(23, 13, "Disclaimer", 0);
         
+        SDL_SetRenderTarget(renderer, NULL);        
+        SDL_RenderCopy(renderer, display, NULL, NULL);
+
         SDL_RenderPresent(renderer);
-        SDL_Flip(screen);
 
         SDL_Delay(16);
     }
