@@ -19,9 +19,9 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		?=	debug
-SOURCES		:=	source
+SOURCES		:=	source SDL_FontCache
 DATA		:=	data
-INCLUDES	:=	include src/wiiu
+INCLUDES	:=	include SDL_FontCache
 
 #-------------------------------------------------------------------------------
 # options for code generation
@@ -92,6 +92,7 @@ real: export INCLUDE :=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 						$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 						-I$(PORTLIBS_PATH)/ppc/include/freetype2
 real:
+	@cd SDL_FontCache && for patch in $(TOPDIR)/SDL_FontCache-patches/*.patch; do echo Applying $$patch && git apply $$patch; done || true
 	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
 	@$(MAKE) -C $(BUILD) -f $(CURDIR)/Makefile BUILD=$(BUILD) $(MAKE_CMD)
 
