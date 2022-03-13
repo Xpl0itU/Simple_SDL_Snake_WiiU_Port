@@ -57,6 +57,7 @@ int main()
         textToFrameCut(23, 13, "Disclaimer", 0);
         
         SDL_RenderPresent(renderer);
+        SDL_Flip(screen);
 
         SDL_Delay(16);
     }
