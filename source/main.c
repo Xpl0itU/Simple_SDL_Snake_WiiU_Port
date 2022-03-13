@@ -9,7 +9,7 @@ const SDL_Point screen = { .x = 1280, .y = 720 };
 FC_Font *font = NULL;
 int32_t spaceWidth;
 SDL_Renderer *renderer;
-SDL_Texture *display;
+SDL_Texture *frameBuffer;
 
 void draw_screen(SDL_Renderer *renderer)
 {
@@ -34,14 +34,10 @@ int main()
         );
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1,
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    display = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
-    SDL_SetRenderTarget(renderer, display);
-
-    // make the scaled rendering look smoother.
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-    SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    draw_screen(renderer);
+    frameBuffer = SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), SDL_TEXTUREACCESS_TARGET, screen.x, screen.y);    
+    SDL_SetRenderTarget(renderer, frameBuffer);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     while (WHBProcIsRunning()) {        
 
@@ -56,10 +52,7 @@ int main()
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
 
-        textToFrameCut(23, 13, "Disclaimer", 0);
-        
-        SDL_SetRenderTarget(renderer, NULL);        
-        SDL_RenderCopy(renderer, display, NULL, NULL);
+        textToFrameCut(23, 13, "Disclaimer", 1000);
 
         SDL_RenderPresent(renderer);
 
