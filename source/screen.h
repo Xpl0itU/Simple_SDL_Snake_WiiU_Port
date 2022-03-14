@@ -1,24 +1,30 @@
-#include <SDL2/SDL.h>
-#include <SDL_FontCache.h>
+#define __STDC_WANT_LIB_EXT2__ 1
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <malloc.h>
 
-#include <coreinit/memory.h>
-#include <whb/proc.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
-#define SCREEN_WIDTH 960
-#define SCREEN_HEIGHT 720
+typedef union _RGBAColor {
+    uint32_t c;
+    struct {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+        uint8_t a;
+    };
+} RGBAColor;
 
-#define screenColorToSDLcolor(color) (SDL_Color){ .a = color & 0xFFu, .b = (color & 0x0000FF00u) >> 8, .g = (color & 0x00FF0000u) >> 16, .r = (color & 0xFF000000u) >> 24 }
-#define FONT_SIZE 28
-#define MAX_CHARS 152 //TODO: This is here for historical reasons and only valid for spaces now
-#define MAX_LINES 28
+#ifndef max
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#endif
 
-#define ALIGNED_RIGHT MAX_CHARS
-#define ALIGNED_CENTER MAX_CHARS + 1
-#define FRAME_RATE 60
-
-extern const SDL_Point screen;
-extern FC_Font *font;
-extern int32_t spaceWidth;
-extern SDL_Renderer *renderer;
-
-void textToFrameCut(int line, int column, const char *str, int maxWidth);
+bool initFont(void* fontBuf, FT_Long fsize);
+void drawPixel(int x, int y, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y);
+int ttfPrintString(int x, int y, char *string, bool wWrap, bool ceroX);
+int ttfStringWidth(char *string, int8_t part);
+void console_print_pos_aligned(int y, uint16_t offset, uint8_t align, const char* format, ...);

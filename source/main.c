@@ -1,67 +1,42 @@
 #include "screen.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <time.h>
+#include <coreinit/screen.h>
+#include <coreinit/memory.h>
+#include <coreinit/cache.h>
+#include <whb/proc.h>
 
-const SDL_Point screen = { .x = 1280, .y = 720 };
-FC_Font *font = NULL;
-int32_t spaceWidth;
-SDL_Renderer *renderer;
-SDL_Texture *frameBuffer;
-
-void draw_screen(SDL_Renderer *renderer)
-{
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-}
-
-int main()
-{
+int main(int argc, char** argv) {
     WHBProcInit();
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0) {
-        fprintf(stderr, "\nUnable to initialize SDL: %s\n", SDL_GetError());
-        return 1;
-    }
-    atexit(SDL_Quit);
+    OSScreenInit();
+    size_t tvBufferSize = OSScreenGetBufferSizeEx(SCREEN_TV);
+    size_t drcBufferSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
 
-    SDL_Window *window =
-        SDL_CreateWindow("SDL",
-                SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                SCREEN_WIDTH, SCREEN_HEIGHT,
-                SDL_WINDOW_SHOWN
-        );
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1,
-            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    frameBuffer = SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(window), SDL_TEXTUREACCESS_TARGET, screen.x, screen.y);    
-    SDL_SetRenderTarget(renderer, frameBuffer);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    void* tvBuffer = memalign(0x100, tvBufferSize);
+    void* drcBuffer = memalign(0x100, drcBufferSize);
 
-    while (WHBProcIsRunning()) {        
+    OSScreenSetBufferEx(SCREEN_TV, tvBuffer);
+    OSScreenSetBufferEx(SCREEN_DRC, drcBuffer);
 
-        //code
-        void *ttf;
-        size_t size;
-        OSGetSharedData(OS_SHAREDDATATYPE_FONT_STANDARD, 0, &ttf, &size);
-        FC_Font* font = FC_CreateFont();  
-        SDL_RWops *rw = SDL_RWFromMem(ttf, size);      
-        FC_LoadFont_RW(font, renderer, rw, 1, 28, screenColorToSDLcolor(0xFFFFFFFF), TTF_STYLE_NORMAL); 
-        
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-        SDL_RenderClear(renderer);
+    OSScreenEnableEx(SCREEN_TV, true);
+    OSScreenEnableEx(SCREEN_DRC, true);
+    initFont(NULL, 0);
 
-        textToFrameCut(23, 13, "Disclaimer", 1000);
+    while(WHBProcIsRunning()) {
+        OSScreenClearBufferEx(SCREEN_TV, 0x00000000);
+        OSScreenClearBufferEx(SCREEN_DRC, 0x00000000);
 
-        SDL_RenderPresent(renderer);
+        console_print_pos_aligned(3, 0, 1, "Savemii Mod");
+        DCFlushRange(tvBuffer, tvBufferSize);
+        DCFlushRange(drcBuffer, drcBufferSize);
 
-        SDL_Delay(16);
+        OSScreenFlipBuffersEx(SCREEN_TV);
+        OSScreenFlipBuffersEx(SCREEN_DRC);
     }
 
+    if (tvBuffer) free(tvBuffer);
+    if (drcBuffer) free(drcBuffer);
+
+    OSScreenShutdown();
     WHBProcShutdown();
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-
-    return 0;
-} 
+    return 1;
+}

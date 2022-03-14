@@ -19,9 +19,9 @@ include $(DEVKITPRO)/wut/share/wut_rules
 #-------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		?=	debug
-SOURCES		:=	source SDL_FontCache
+SOURCES		:=	source
 DATA		:=	data
-INCLUDES	:=	include SDL_FontCache
+INCLUDES	:=	include
 
 #-------------------------------------------------------------------------------
 # options for code generation
@@ -34,8 +34,7 @@ CXXFLAGS	:=	$(CFLAGS) -fpermissive
 ASFLAGS		:=	-g $(ARCH)
 LDFLAGS		:=	-g $(ARCH) $(RPXSPECS) $(CFLAGS) -Wl,-Map,$(notdir $*.map)
 
-LIBS		:=	-lwut -lgui -lfreetype -lgd -lpng -ljpeg -lz -lmad \
-				-lvorbisidec -logg -lbz2 `$(PREFIX)pkg-config --libs SDL2_mixer SDL2_ttf SDL2_image`
+LIBS		:=	-lwut -lfreetype -lpng -lz -lm -lbz2
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
